@@ -1,0 +1,67 @@
+/* ─── BostonPulse Premium Theme ─────────────────────────────────
+   Design tokens for the CEO-demo UI.
+   Glassmorphism + dark palette + Boston city energy.
+   ────────────────────────────────────────────────────────────── */
+
+:root {
+  /* ── Core palette ─────────────────────────────────────────── */
+  --bp-bg:           #07080c;
+  --bp-bg-subtle:    #0c0e14;
+  --bp-surface:      #11131a;
+  --bp-surface-2:    #181b24;
+  --bp-surface-3:    #1f222e;
+
+  /* ── Text ─────────────────────────────────────────────────── */
+  --bp-text:         #e8eaf0;
+  --bp-text-muted:   #8b90a0;
+  --bp-text-faint:   #555968;
+
+  /* ── Accent — Subconscious orange, evolved ────────────────── */
+  --bp-accent:       #ff6b35;
+  --bp-accent-soft:  #ff9b70;
+  --bp-accent-glow:  rgba(255, 107, 53, 0.15);
+  --bp-accent-glow2: rgba(255, 107, 53, 0.06);
+
+  /* ── Semantic colors ──────────────────────────────────────── */
+  --bp-teal:         #3dd6c8;
+  --bp-teal-soft:    rgba(61, 214, 200, 0.12);
+  --bp-green:        #4ade80;
+  --bp-green-soft:   rgba(74, 222, 128, 0.12);
+  --bp-blue:         #60a5fa;
+  --bp-blue-soft:    rgba(96, 165, 250, 0.10);
+  --bp-red:          #f87171;
+  --bp-red-soft:     rgba(248, 113, 113, 0.10);
+  --bp-yellow:       #fbbf24;
+  --bp-purple:       #a78bfa;
+
+  /* ── MBTA line colors ─────────────────────────────────────── */
+  --bp-mbta-red:     #DA291C;
+  --bp-mbta-orange:  #ED8B00;
+  --bp-mbta-green:   #00843D;
+  --bp-mbta-blue:    #003DA5;
+  --bp-mbta-silver:  #7C878E;
+
+  /* ── Glass ────────────────────────────────────────────────── */
+  --bp-glass:        rgba(255, 255, 255, 0.03);
+  --bp-glass-border: rgba(255, 255, 255, 0.06);
+  --bp-glass-hover:  rgba(255, 255, 255, 0.05);
+
+  /* ── Borders & shadows ────────────────────────────────────── */
+  --bp-border:       rgba(255, 255, 255, 0.07);
+  --bp-border-light: rgba(255, 255, 255, 0.10);
+  --bp-shadow-sm:    0 1px 2px rgba(0, 0, 0, 0.3);
+  --bp-shadow-md:    0 4px 12px rgba(0, 0, 0, 0.4);
+  --bp-shadow-lg:    0 8px 32px rgba(0, 0, 0, 0.5);
+  --bp-shadow-glow:  0 0 20px rgba(255, 107, 53, 0.08);
+
+  /* ── Radii ────────────────────────────────────────────────── */
+  --bp-radius-sm:  8px;
+  --bp-radius-md:  12px;
+  --bp-radius-lg:  16px;
+  --bp-radius-xl:  20px;
+  --bp-radius-full: 9999px;
+
+  /* ── Transitions ──────────────────────────────────────────── */
+  --bp-ease:     cubic-bezier(0.22, 1, 0.36, 1);
+  --bp-duration: 200ms;
+}

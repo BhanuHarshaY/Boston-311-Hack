@@ -1,0 +1,141 @@
+@import "tailwindcss";
+@import "../ui/theme.css";
+
+:root {
+  /* Legacy tokens (kept for existing components if needed) */
+  --color-primary-black: #101820;
+  --color-primary-orange: #FF5C28;
+  --color-secondary-orange: #FFC0A4;
+  --color-secondary-teal: #3ED0C3;
+  --color-accent-green: #B5E800;
+  --color-graphite: #5A5A5A;
+  --color-cream: #F0F3EF;
+
+  --background: var(--color-primary-black);
+  --foreground: var(--color-cream);
+  --accent: var(--color-primary-orange);
+  --accent-soft: var(--color-secondary-orange);
+  --teal: var(--color-secondary-teal);
+  --green: var(--color-accent-green);
+  --surface: #1a2632;
+  --surface-light: #243040;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-light: rgba(255, 255, 255, 0.12);
+}
+
+body {
+  background: var(--bp-bg);
+  color: var(--bp-text);
+  font-family: var(--font-body), system-ui, sans-serif;
+}
+
+/* ─── Scrollbar ─────────────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* ─── Animations ────────────────────────────────────────────── */
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes bp-slide-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes bp-slide-down {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes bp-scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes bp-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes bp-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.25s ease-out;
+}
+
+.bp-streaming-cursor::after {
+  content: "\25AE";
+  color: var(--bp-accent);
+  animation: bp-blink 0.8s step-end infinite;
+  margin-left: 1px;
+}
+
+/* Legacy cursor (old components) */
+.streaming-cursor::after {
+  content: "\25AE";
+  color: var(--accent);
+  animation: bp-blink 0.8s step-end infinite;
+  margin-left: 1px;
+}
+
+/* ─── Prose overrides for markdown ──────────────────────────── */
+
+.bp-prose > *:first-child { margin-top: 0; }
+.bp-prose > *:last-child  { margin-bottom: 0; }
+.bp-prose ul  { margin-block: 0.25rem; }
+.bp-prose li  { margin-block: 0.125rem; }
+.bp-prose p   { margin-block: 0.25rem; }
+.bp-prose strong { color: var(--bp-text); }
+.bp-prose h1, .bp-prose h2, .bp-prose h3 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+.bp-prose code {
+  font-size: 0.75rem;
+  background: var(--bp-surface-2);
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
+}
+
+/* ─── Background pattern (subtle dot grid) ──────────────────── */
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    rgba(255, 255, 255, 0.02) 1px,
+    transparent 0
+  );
+  background-size: 32px 32px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+#__next, main, body > div {
+  position: relative;
+  z-index: 1;
+}
