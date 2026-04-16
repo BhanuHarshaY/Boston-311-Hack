@@ -4,6 +4,21 @@ import type { ActiveReasoning } from "./Layout";
 import { formatToolParams } from "@/lib/stream-parser";
 import type { ReasoningStep, ParsedToolUse } from "@/lib/stream-parser";
 
+const TOOL_ICONS: Record<string, string> = {
+  query_311_cases: "🏛️",
+  get_weather: "☀️",
+  get_local_events: "🎉",
+  get_neighborhood_trends: "📈",
+  web_search: "🔍",
+  tweet_search: "🐦",
+  fresh_search: "🔍",
+  news_search: "📰",
+};
+
+function getToolIcon(name: string): string {
+  return TOOL_ICONS[name] ?? "🔧";
+}
+
 interface ReasoningPanelProps {
   reasoning: ActiveReasoning | null;
 }
@@ -50,7 +65,6 @@ export function ReasoningPanel({ reasoning }: ReasoningPanelProps) {
           <StepNode
             key={`${step.title}-${i}`}
             step={step}
-            index={i}
             isLast={i === steps.length - 1}
             isActive={i === steps.length - 1 && isStreaming && step.status !== "complete"}
           />
@@ -113,12 +127,10 @@ function PanelHeader({
 
 function StepNode({
   step,
-  index,
   isLast,
   isActive,
 }: {
   step: ReasoningStep;
-  index: number;
   isLast: boolean;
   isActive: boolean;
 }) {
@@ -248,6 +260,7 @@ function ToolCard({ tool }: { tool: ParsedToolUse }) {
       ].join(" ")}
     >
       <div className="flex items-center gap-2 px-2.5 py-1.5">
+        <span className="text-sm">{getToolIcon(tool.toolName)}</span>
         <span className="text-[10px] font-semibold font-mono text-[var(--bp-teal)]">
           {tool.toolName}
         </span>

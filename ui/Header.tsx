@@ -24,17 +24,16 @@ export function Header({
         <div className="relative">
           <Image
             src="/logo.png"
-            alt="BostonPulse"
+            alt="Boston 311"
             width={32}
             height={32}
             className="rounded-lg"
           />
-          {/* Live pulse dot */}
           <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-[var(--bp-green)] border-2 border-[var(--bp-bg-subtle)] animate-pulse" />
         </div>
         <div className="flex items-center gap-2.5">
           <span className="text-sm font-bold text-[var(--bp-text)] tracking-tight">
-            BostonPulse
+            Boston 311
           </span>
           <span className="text-[10px] text-[var(--bp-accent)] font-semibold bg-[var(--bp-accent-glow)] border border-[var(--bp-accent)]/20 px-2 py-0.5 rounded-full">
             LIVE
@@ -43,8 +42,8 @@ export function Header({
       </div>
 
       {/* Center — tagline */}
-      <p className="hidden md:block text-xs text-[var(--bp-text-faint)]">
-        Real-time city intelligence powered by Subconscious
+      <p className="hidden md:block text-xs text-[var(--bp-text-faint)] font-medium">
+        One Conversation. Every City Service.
       </p>
 
       {/* Right — controls */}

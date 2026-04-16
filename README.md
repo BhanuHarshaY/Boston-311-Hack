@@ -1,64 +1,55 @@
-# BostonPulse
+# Boston 311 — One Conversation. Every City Service.
 
-Real-time Boston city intelligence powered by the [Subconscious](https://subconscious.dev) agent platform. Ask anything about Boston — transit, weather, events, what's happening tonight — and get a live, synthesized answer pulled from the MBTA API, OpenWeatherMap, Ticketmaster, Reddit, and real-time web/tweet search.
+A multilingual voice + text AI agent that takes one natural language question from a Boston resident and orchestrates across multiple data sources to return one clear, friendly answer. Built for older adults and non-English speakers who deserve the same access to city services as everyone else.
 
-## Demo
-
-[![Watch the demo](https://img.shields.io/badge/▶_Watch_Demo-YouTube-red?style=for-the-badge&logo=youtube)](https://youtu.be/1tFCFxeNiFU)
-
-## UI
-
-BostonPulse features a three-panel real-time interface built with Next.js 15 and React 19:
-
-| Panel | What it shows |
-|-------|--------------|
-| **Live Sidebar** (left) | Real-time MBTA transit alerts, current weather, today's events, and city buzz from Reddit — auto-refreshes every 2 minutes |
-| **Chat** (center) | Conversational interface with streaming AI responses rendered as markdown, conversation history, and quick-action suggestion cards |
-| **Reasoning Panel** (right) | Live visibility into the agent's thinking process — reasoning steps, tool invocations with parameters/results, and a tools summary timeline |
-
-**Design highlights:**
-- Dark glassmorphism theme with translucent surfaces and backdrop blur
-- Real-time streaming with typing indicators and animated reasoning timeline
-- Collapsible sidebars with smooth transitions — toggle from the header
-- Responsive layout that adapts to different screen sizes
-- MBTA line-colored transit alerts (Red, Orange, Green, Blue, Silver)
-- Skeleton loading states while data is being fetched
+> "Has my pothole on Blue Hill Ave been fixed? And is it worth going outside today?"
+>
+> → Checks Boston 311 cases + live weather + today's events → one warm, combined response in your language.
 
 ## What it does
 
-BostonPulse pre-fetches live data from four sources before the agent runs, then passes it as context in the prompt so the agent can synthesize a concise answer immediately:
+Ask anything about Boston city services in any language. The agent calls the right tools in parallel, combines the results, and responds in the same language you wrote in.
 
-| Data source | What it provides |
-|-------------|-----------------|
-| **MBTA API v3** | Live transit alerts — delays, closures, service changes across subway, bus, and commuter rail |
-| **OpenWeatherMap** | Current Boston conditions — temperature, wind, humidity, rain |
-| **Ticketmaster** | Today's events — games, concerts, shows in the Boston area |
-| **Reddit r/boston** | City buzz — trending community posts, local discussions |
+| Tool | What it does |
+|------|-------------|
+| **query_311_cases** 🏛️ | Search Boston 311 service requests by street, neighborhood, or complaint type. Checks open potholes, trash pickup, graffiti, sidewalk repairs, and more — with real case IDs and status |
+| **get_weather** ☀️ | Live Boston weather via Open-Meteo (no API key needed) — temperature, conditions, precipitation chance, plain-English summary |
+| **get_local_events** 🎉 | Today's events in Boston — free concerts, farmers markets, community activities |
+| **get_neighborhood_trends** 📈 | 311 complaint volume trends for any neighborhood over the last 30 days |
 
-The agent also has access to Subconscious platform tools (`tweet_search`, `fresh_search`, `web_search`, `news_search`) to pull in real-time social chatter and breaking local news.
+**Languages supported:** English, Spanish, Portuguese — and any other language the underlying model handles. The agent detects your language and responds in kind.
 
-Responses are formatted as structured markdown with emoji section headers, rendered in the UI via `react-markdown`.
+## UI
+
+Three-panel interface built with Next.js 15 and React 19:
+
+| Panel | What it shows |
+|-------|--------------|
+| **Live Sidebar** (left) | Real-time MBTA alerts, current weather, today's events, and recent 311 reports — auto-refreshes every 2 minutes |
+| **Chat** (center) | Conversational interface with streaming AI responses, conversation history, multilingual quick-start prompts, and quick-action cards |
+| **Reasoning Panel** (right) | Live visibility into the agent's thinking — reasoning steps, tool calls with icons (🏛️☀️🎉📈), parameters, and results as they stream in |
 
 ## Architecture
 
-Live data is fetched **server-side** in the Next.js API route before calling the agent — not as function-tool callbacks. This means the app works without a public tunnel URL and deploys cleanly to Vercel with no networking complexity.
-
 ```
-User query
+User query (any language)
     │
     ▼
 /api/agent/stream
     │
-    ├── fetchAllBostonData()        ← runs in parallel: MBTA + Weather + Events + Buzz
-    │       │
-    │       └── injected into instructions as a pre-fetched context block
+    ├── fetchAllBostonData()        ← parallel pre-fetch: MBTA + Weather + Events + 311 buzz
+    │       └── injected into instructions as context
     │
     └── client.stream()             ← Subconscious TIM agent
             │
-            ├── tweet_search        ← what Bostonians are saying right now
-            ├── fresh_search        ← breaking local news
-            └── synthesized answer  ← streamed back to UI as SSE
+            ├── query_311_cases     ← Boston Open Data SQL API (2026 + 2025 resources)
+            ├── get_weather         ← Open-Meteo (no API key)
+            ├── get_local_events    ← curated Boston events
+            ├── get_neighborhood_trends ← 311 trend analysis
+            └── synthesized answer  ← streamed back as SSE, in user's language
 ```
+
+Tools are function tools hosted at `/api/tools` — the dev tunnel (`npm run dev`) exposes them publicly so the Subconscious platform can call back.
 
 ## Project structure
 
@@ -69,52 +60,51 @@ app/
 │   │   ├── route.ts            # Sync agent endpoint
 │   │   └── stream/route.ts     # Streaming SSE endpoint (primary)
 │   ├── live-data/
-│   │   └── route.ts            # Public endpoint for sidebar live data
+│   │   └── route.ts            # Live data for sidebar
 │   └── tools/
-│       └── route.ts            # Self-hosted tool dispatcher
-├── layout.tsx                  # Root layout with fonts and metadata
-├── page.tsx                    # Entry point — renders Layout
-└── globals.css                 # Global styles, animations, theme imports
+│       └── route.ts            # 311, weather, events, trends dispatchers
+├── layout.tsx
+├── page.tsx
+└── globals.css
 
-ui/                             # Primary UI components
-├── Layout.tsx                  # Three-column layout with collapsible panels
-├── Header.tsx                  # Top nav with sidebar toggles and live indicator
-├── ChatView.tsx                # Message history + SSE streaming integration
-├── ChatInput.tsx               # User input with suggestion chips
-├── ChatMessage.tsx             # Individual message with markdown rendering
-├── WelcomeScreen.tsx           # Initial state with quick-action cards
-├── LiveSidebar.tsx             # Left panel — MBTA, weather, events, buzz
-├── ReasoningPanel.tsx          # Right panel — reasoning steps and tool timeline
-└── theme.css                   # Design tokens and CSS variables
+ui/
+├── Layout.tsx                  # Three-column layout
+├── Header.tsx                  # "Boston 311 — One Conversation. Every City Service."
+├── ChatView.tsx                # SSE streaming + message history
+├── ChatInput.tsx               # Input with suggestion chips
+├── ChatMessage.tsx             # Markdown rendering per message
+├── WelcomeScreen.tsx           # Multilingual prompts + quick-action cards
+├── LiveSidebar.tsx             # Left panel — live Boston data
+├── ReasoningPanel.tsx          # Right panel — tool icons + reasoning steps
+└── theme.css                   # Design tokens
 
 lib/
-├── boston-data.ts               # Live data fetchers (MBTA, weather, events, buzz)
+├── boston-data.ts              # All data fetchers + 4 tool functions
 ├── subconscious.ts             # SDK singleton
-├── tools.ts                    # Platform tool config (web_search, tweet_search, etc.)
-├── types.ts                    # System prompt, buildInstructions(), shared types
-└── stream-parser.ts            # Incremental JSON stream parser for SSE deltas
-
-components/                     # Legacy components (kept for reference)
-├── AgentRunner.tsx
-├── RunResult.tsx
-├── ReasoningDisplay.tsx
-├── ToolPanel.tsx
-└── StreamingText.tsx
+├── tools.ts                    # Tool definitions with icons (method: POST)
+├── types.ts                    # System prompt (multilingual), buildInstructions()
+└── stream-parser.ts            # Incremental SSE JSON parser
 
 scripts/
-└── dev-tunnel.mjs              # Auto-reconnecting localtunnel for local development
+└── dev-tunnel.mjs              # Auto-reconnecting localtunnel
 ```
 
 ## Local development
 
 ```bash
 git clone <your-repo-url>
-cd BostonPulse
+cd boston-311
 npm install
 cp .env.example .env.local
 ```
 
-Edit `.env.local` and fill in all three API keys (see below), then:
+Add your Subconscious API key to `.env.local`:
+
+```
+SUBCONSCIOUS_API_KEY=your_key_here
+```
+
+Then run:
 
 ```bash
 npm run dev
@@ -122,7 +112,7 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-`npm run dev` starts a [localtunnel](https://github.com/localtunnel/localtunnel) automatically so the Subconscious platform can reach any self-hosted tools. If you only need platform tools (the default), you can skip it:
+`npm run dev` starts a [localtunnel](https://github.com/localtunnel/localtunnel) automatically so Subconscious can call your function tools. If the tunnel is unavailable, run without it (platform tools only):
 
 ```bash
 npm run dev:no-tunnel
@@ -130,40 +120,34 @@ npm run dev:no-tunnel
 
 ## Environment variables
 
-| Variable | Required | Where to get it |
-|----------|----------|----------------|
+| Variable | Required | Notes |
+|----------|----------|-------|
 | `SUBCONSCIOUS_API_KEY` | **Yes** | [subconscious.dev/platform](https://subconscious.dev/platform) |
-| `OPENWEATHERMAP_API_KEY` | **Yes** | [openweathermap.org/api](https://openweathermap.org/api) — free tier, key activates within 2 hours |
-| `TICKETMASTER_API_KEY` | **Yes** | [developer.ticketmaster.com](https://developer.ticketmaster.com/) — free, instant |
-| `SUBCONSCIOUS_ENGINE` | No | Default: `tim-gpt`. Options: `tim`, `tim-edge`, `tim-gpt-heavy` |
+| `SUBCONSCIOUS_ENGINE` | No | Default: `tim-gpt`. Options: `tim-edge`, `tim-gpt-heavy` |
 
-Without `OPENWEATHERMAP_API_KEY` or `TICKETMASTER_API_KEY`, the agent will fall back to using `web_search` to find that data. The MBTA feed is public and requires no key.
+Weather uses [Open-Meteo](https://open-meteo.com/) — no API key needed. 311 data uses the [Boston Open Data](https://data.boston.gov/) Socrata API — also no key needed.
 
-## Engines
+## 311 data sources
 
-| Engine | Best for |
-|--------|----------|
-| `tim-gpt` | Default — good balance of speed and quality |
-| `tim-edge` | Fastest responses |
-| `tim-gpt-heavy` | Most thorough reasoning |
+Live Boston 311 data is pulled from the city's open data portal:
 
-Full list at [docs.subconscious.dev/engines](https://docs.subconscious.dev/engines).
+- **2026 cases:** resource `1a0b420d-99f1-4887-9851-990b2a5a6e17`
+- **2025 cases:** resource `9d7c2214-4709-478a-a2e8-fb2020a5bb94` (fallback for older cases)
+
+The `query_311_cases` tool uses Socrata SQL (`datastore_search_sql`) with `ILIKE` pattern matching so it can find cases by street name (e.g. `location_street_name ILIKE '%Blue Hill%'`), neighborhood, or complaint type.
 
 ## Adding data sources
 
-To add a new live data source (e.g. Red Sox schedule, parking availability):
+To add a new tool (e.g. parking availability, school closures):
 
 1. Add a fetch function in `lib/boston-data.ts`
-2. Call it inside `fetchAllBostonData()` alongside the existing `Promise.all`
-3. Extend the `BostonLiveData` interface and add it to the context block in `buildLiveDataBlock()` in `lib/types.ts`
-4. Update the system prompt in `lib/types.ts` to tell the agent the new data is available
-
-No tool registration needed — data is injected as context, not fetched by the agent.
+2. Register the handler in `app/api/tools/route.ts`
+3. Add the tool definition in `lib/tools.ts` (type: `"function"`, method: `"POST"`)
+4. Update the system prompt in `lib/types.ts` to tell the agent the tool exists
 
 ## Learn more
 
 - [Subconscious Docs](https://docs.subconscious.dev)
-- [Subconscious Node.js SDK](https://github.com/subconscious-systems/subconscious-node)
+- [Boston Open Data — 311 Service Requests](https://data.boston.gov/dataset/311-service-requests)
+- [Open-Meteo API](https://open-meteo.com/)
 - [MBTA API v3](https://api-v3.mbta.com/docs/swagger/index.html)
-- [OpenWeatherMap Current Weather API](https://openweathermap.org/current)
-- [Ticketmaster Discovery API](https://developer.ticketmaster.com/products-and-docs/apis/discovery-api/v2/)

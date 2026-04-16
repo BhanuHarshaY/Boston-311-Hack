@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
+import {
+  query311Cases,
+  getWeatherTool,
+  getLocalEventsTool,
+  getNeighborhoodTrends,
+} from "@/lib/boston-data";
 
-// ── Existing Handlers ─────────────────────────────────────────
+// ── Tool Handlers ─────────────────────────────────────────────
+
 const ALLOWED_EXPR = /^[0-9+\-*/().,%\s\^e]+$/i;
 
 async function calculator(params: Record<string, unknown>) {
@@ -16,42 +23,21 @@ async function calculator(params: Record<string, unknown>) {
   return { result };
 }
 
-async function webReader(params: Record<string, unknown>) {
-  const { url } = params;
-  if (!url || typeof url !== "string") return { error: "url is required" };
-  let parsed: URL;
-  try { parsed = new URL(url); } catch { return { error: "Invalid URL" }; }
-  if (!["http:", "https:"].includes(parsed.protocol))
-    return { error: "Only http and https URLs are supported" };
-  const res = await fetch(url, {
-    headers: { "User-Agent": "SubconsciousAgent/1.0" },
-    signal: AbortSignal.timeout(8000),
-  });
-  if (!res.ok) return { error: `Fetch failed with status ${res.status}` };
-  const html = await res.text();
-  const MAX_LENGTH = 8000;
-  const stripped = html
-    .replace(/<script[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style[\s\S]*?<\/style>/gi, " ")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<").replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"').replace(/\s+/g, " ").trim();
-  const text = stripped.slice(0, MAX_LENGTH);
-  const title = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]?.trim() ?? "";
-  return { url: parsed.href, title, content: text, truncated: stripped.length > MAX_LENGTH };
-}
-
-// ── Register handlers (name must match tools.ts) ──────────────
+// ── Register handlers ─────────────────────────────────────────
 const handlers: Record<
   string,
   (params: Record<string, unknown>) => Promise<Record<string, unknown>>
 > = {
+  // Boston 311 agent tools
+  query_311_cases: (p) => query311Cases(p as Parameters<typeof query311Cases>[0]),
+  get_weather: (p) => getWeatherTool(p as Parameters<typeof getWeatherTool>[0]),
+  get_local_events: (p) => getLocalEventsTool(p as Parameters<typeof getLocalEventsTool>[0]),
+  get_neighborhood_trends: (p) => getNeighborhoodTrends(p as Parameters<typeof getNeighborhoodTrends>[0]),
+  // Legacy tools
   Calculator: calculator,
-  WebReader: webReader,
 };
 
-// ── Dispatcher (don't edit below) ─────────────────────────────
+// ── Dispatcher ────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();

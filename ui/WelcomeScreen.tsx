@@ -6,32 +6,47 @@ interface WelcomeScreenProps {
 
 const QUICK_CARDS = [
   {
-    icon: "train",
-    title: "Transit Status",
-    desc: "MBTA alerts & delays",
-    query: "What's the MBTA status right now?",
+    icon: "pothole",
+    title: "Check 311 Status",
+    desc: "Potholes, trash & repairs",
+    query: "Has my pothole on Blue Hill Ave been fixed? And is it worth going outside today?",
     color: "var(--bp-teal)",
   },
   {
     icon: "weather",
-    title: "Weather",
-    desc: "Current conditions",
-    query: "What's the weather like in Boston?",
+    title: "Weather Today",
+    desc: "Is it nice outside?",
+    query: "What's the weather like in Boston today? Should I go outside?",
     color: "var(--bp-blue)",
   },
   {
     icon: "event",
-    title: "Events Tonight",
-    desc: "Shows, sports & more",
-    query: "What events are happening in Boston tonight?",
+    title: "Events Near Me",
+    desc: "Free activities & community",
+    query: "What free events are happening in Boston today?",
     color: "var(--bp-purple)",
   },
   {
     icon: "pulse",
-    title: "Full Briefing",
+    title: "Full City Update",
     desc: "Everything at a glance",
-    query: "Give me a full Boston city briefing",
+    query: "Give me a full Boston update — weather, events, and any 311 issues in Dorchester",
     color: "var(--bp-accent)",
+  },
+];
+
+const EXAMPLE_PROMPTS = [
+  {
+    lang: "🇺🇸",
+    text: "Is it worth going outside today? Has my pothole on Blue Hill Ave been fixed?",
+  },
+  {
+    lang: "🇪🇸",
+    text: "¿Hay eventos cerca de Roxbury hoy?",
+  },
+  {
+    lang: "🇧🇷",
+    text: "Como está o tempo e tem alguma reclamação nova em Dorchester?",
   },
 ];
 
@@ -44,19 +59,37 @@ export function WelcomeScreen({ onSuggestion }: WelcomeScreenProps) {
           <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[var(--bp-accent)]/20 to-[var(--bp-teal)]/10 blur-xl" />
           <div className="relative h-full w-full rounded-2xl bg-[var(--bp-surface)] border border-[var(--bp-border)] flex items-center justify-center">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-[var(--bp-accent)]">
-              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              <polyline points="9 22 9 12 15 12 15 22" />
             </svg>
           </div>
         </div>
 
         {/* Title */}
-        <h1 className="text-2xl font-bold text-[var(--bp-text)] mb-2">
-          What&apos;s happening in Boston?
+        <h1 className="text-2xl font-bold text-[var(--bp-text)] mb-1">
+          Boston 311 Assistant
         </h1>
-        <p className="text-sm text-[var(--bp-text-muted)] mb-8 leading-relaxed">
-          Real-time transit, weather, events & city buzz — powered by
-          multi-hop AI reasoning
+        <p className="text-sm font-medium text-[var(--bp-accent)] mb-2">
+          One Conversation. Every City Service.
         </p>
+        <p className="text-xs text-[var(--bp-text-muted)] mb-6 leading-relaxed">
+          Ask about potholes, weather, events, or anything Boston — in any language.
+        </p>
+
+        {/* Multilingual example prompts */}
+        <div className="mb-6 space-y-2">
+          {EXAMPLE_PROMPTS.map((p) => (
+            <button
+              key={p.lang}
+              type="button"
+              onClick={() => onSuggestion(p.text)}
+              className="w-full text-left px-4 py-2.5 rounded-xl bg-[var(--bp-surface)] border border-[var(--bp-border)] hover:border-[var(--bp-border-light)] hover:bg-[var(--bp-surface-2)] transition-all duration-200 active:scale-[0.99]"
+            >
+              <span className="text-sm mr-2">{p.lang}</span>
+              <span className="text-xs text-[var(--bp-text-muted)] italic">&ldquo;{p.text}&rdquo;</span>
+            </button>
+          ))}
+        </div>
 
         {/* Quick action cards */}
         <div className="grid grid-cols-2 gap-3">
@@ -106,15 +139,11 @@ function CardIcon({ type, color }: { type: string; color: string }) {
   };
 
   switch (type) {
-    case "train":
+    case "pothole":
       return (
         <svg {...props}>
-          <rect x="4" y="3" width="16" height="14" rx="2" />
-          <path d="M4 11h16" />
-          <path d="M12 3v8" />
-          <circle cx="8" cy="19" r="1" />
-          <circle cx="16" cy="19" r="1" />
-          <path d="M6 17l-2 4M18 17l2 4" />
+          <circle cx="12" cy="12" r="10" />
+          <path d="M8 12h8M12 8v8" />
         </svg>
       );
     case "weather":
