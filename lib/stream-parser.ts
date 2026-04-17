@@ -126,8 +126,8 @@ function tryParseReasoningTree(
   const topLevelAnswer = (parsed.answer as string | undefined) ?? "";
   if (topLevelAnswer) return { steps, answer: topLevelAnswer };
 
-  // 2. Last step with a non-empty conclusion
-  const conclusionAnswer = [...steps].reverse().find((s) => s.conclusion)?.conclusion;
+  // 2. Any step with a non-empty conclusion (deepest/last wins)
+  const conclusionAnswer = [...steps].reverse().find((s) => s.conclusion?.trim())?.conclusion;
   if (conclusionAnswer) return { steps, answer: conclusionAnswer };
 
   // 3. Deep scan: walk every string value in the raw parsed object looking
@@ -189,8 +189,9 @@ function flattenNodes(nodes: any[], out: ReasoningStep[], depth: number): void {
       depth,
     });
 
-    if (Array.isArray(node.subtasks) && node.subtasks.length > 0) {
-      flattenNodes(node.subtasks, out, depth + 1);
+    const subs = node.subtasks ?? node.subtask ?? node.sub_tasks;
+    if (Array.isArray(subs) && subs.length > 0) {
+      flattenNodes(subs, out, depth + 1);
     }
   }
 }
@@ -396,16 +397,34 @@ function extractToolUses(content: string): ParsedToolUse[] {
     const nextToolIdx = afterMatch.indexOf('"tool_name"', 10);
     const scope = nextToolIdx > 0 ? afterMatch.slice(0, nextToolIdx) : afterMatch;
 
-    const resultMatch = scope.match(/"tool_result"\s*:\s*(\{[^}]*\})/);
     tools.push({
       toolName: unesc(match[1]),
-      parameters: scope.match(/"parameters"\s*:\s*(\{[^}]*\})/)?.[1] ?? "{}",
+      parameters: extractNestedObject(scope, "parameters") ?? "{}",
       hasResult: /"tool_result"\s*:/.test(scope),
-      result: resultMatch?.[1] ?? "",
+      result: extractNestedObject(scope, "tool_result") ?? "",
     });
   }
 
   return tools;
+}
+
+/** Extract the JSON object/value for a given key, handling nested braces. */
+function extractNestedObject(scope: string, key: string): string | null {
+  const keyMatch = scope.match(new RegExp(`"${key}"\\s*:\\s*`));
+  if (!keyMatch || keyMatch.index === undefined) return null;
+  const start = keyMatch.index + keyMatch[0].length;
+  const rest = scope.slice(start).trimStart();
+  if (rest[0] === "{") {
+    let depth = 0;
+    for (let i = 0; i < rest.length; i++) {
+      if (rest[i] === "{") depth++;
+      else if (rest[i] === "}") { depth--; if (depth === 0) return rest.slice(0, i + 1); }
+    }
+    return rest; // unclosed — return what we have
+  }
+  // Scalar value (string, number, null)
+  const scalar = rest.match(/^("(?:[^"\\]|\\.)*"|[^,}\]]+)/);
+  return scalar?.[1] ?? null;
 }
 
 function unesc(s: string): string {
