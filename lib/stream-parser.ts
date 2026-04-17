@@ -131,10 +131,19 @@ function tryParseReasoningTree(
   if (conclusionAnswer) return { steps, answer: conclusionAnswer };
 
   // 3. Deep scan: walk every string value in the raw parsed object looking
-  //    for the formatted BostonPulse answer (starts with a known emoji header).
+  //    for a long string that looks like a final answer (>40 chars, not a tool name).
   const ANSWER_MARKERS = ["🚇", "\u{1F687}", "🌤", "\u{1F324}", "Transit**", "\uD83D\uDE87"];
   const found = findAnswerString(parsed, ANSWER_MARKERS);
-  return { steps, answer: found ?? "" };
+  if (found) return { steps, answer: found };
+
+  // 4. Last resort: use the longest thought from any step as the visible answer.
+  //    This handles cases where the agent puts the answer in "thought" but leaves
+  //    "conclusion" and "answer" empty (common with non-English responses).
+  const longestThought = [...steps]
+    .map((s) => s.thought)
+    .filter((t) => t && t.length > 40)
+    .sort((a, b) => b.length - a.length)[0];
+  return { steps, answer: longestThought ?? "" };
 }
 
 /** Walk every string value in an object tree, return the first that contains any marker. */

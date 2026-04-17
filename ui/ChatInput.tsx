@@ -96,7 +96,7 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
                 handleSubmit();
               }
             }}
-            placeholder={disabled ? "Agent is thinking..." : "Ask BostonPulse anything..."}
+            placeholder={disabled ? "Agent is thinking..." : "Ask Boston311 agent anything..."}
             disabled={disabled}
             rows={1}
             className={[

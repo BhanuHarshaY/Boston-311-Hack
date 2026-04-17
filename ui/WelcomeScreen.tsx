@@ -67,13 +67,13 @@ export function WelcomeScreen({ onSuggestion }: WelcomeScreenProps) {
 
         {/* Title */}
         <h1 className="text-2xl font-bold text-[var(--bp-text)] mb-1">
-          Boston 311 Assistant
+          Boston 311 Agent
         </h1>
         <p className="text-sm font-medium text-[var(--bp-accent)] mb-2">
           One Conversation. Every City Service.
         </p>
         <p className="text-xs text-[var(--bp-text-muted)] mb-6 leading-relaxed">
-          Ask about potholes, weather, events, or anything Boston — in any language.
+          Ask about potholes, weather, events, or anything about Boston in any language.
         </p>
 
         {/* Multilingual example prompts */}

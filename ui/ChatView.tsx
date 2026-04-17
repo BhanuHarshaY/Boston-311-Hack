@@ -200,11 +200,51 @@ async function consumeStream(
   }
 
   const finalState = parseStreamContent(fullContent);
+
+  // If the agent produced no answer (empty conclusion + no answer field),
+  // synthesize one from the tool results in the reasoning steps.
+  let answer = finalState.answer;
+  if (!answer.trim() && finalState.toolInvocations.length > 0) {
+    answer = synthesizeAnswerFromTools(finalState.toolInvocations, task);
+  }
+
   return {
-    answer: finalState.answer,
+    answer,
     steps: finalState.steps,
     toolInvocations: finalState.toolInvocations,
   };
+}
+
+function synthesizeAnswerFromTools(tools: ParsedToolUse[], query: string): string {
+  const parts: string[] = [];
+  for (const tool of tools) {
+    if (!tool.hasResult || !tool.result) continue;
+    try {
+      const r = JSON.parse(tool.result);
+      if (r.error) continue; // skip failed tools silently
+      if (tool.toolName === "get_local_events" && r.events) {
+        const evList = r.events
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .map((e: any) => `• ${e.name} — ${e.time} (${e.location})`)
+          .join("\n");
+        parts.push(`Events today in Boston:\n${evList}`);
+      } else if (tool.toolName === "get_weather" && r.summary) {
+        parts.push(r.summary);
+      } else if (tool.toolName === "query_311_cases" && r.summary) {
+        parts.push(r.summary);
+        if (r.cases?.length) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const top = r.cases.slice(0, 3).map((c: any) =>
+            `• ${c.description} on ${c.street ?? c.neighborhood} — ${c.status}`
+          ).join("\n");
+          parts.push(top);
+        }
+      } else if (tool.toolName === "get_neighborhood_trends" && r.summary) {
+        parts.push(r.summary);
+      }
+    } catch { /* skip unparseable */ }
+  }
+  return parts.length > 0 ? parts.join("\n\n") : `I found information related to "${query}" but couldn't format a response. Please try again.`;
 }
 
 function parseSSELine(

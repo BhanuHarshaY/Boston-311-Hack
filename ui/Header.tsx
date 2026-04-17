@@ -33,7 +33,7 @@ export function Header({
         </div>
         <div className="flex items-center gap-2.5">
           <span className="text-sm font-bold text-[var(--bp-text)] tracking-tight">
-            Boston 311
+            Boston 311 Agent
           </span>
           <span className="text-[10px] text-[var(--bp-accent)] font-semibold bg-[var(--bp-accent-glow)] border border-[var(--bp-accent)]/20 px-2 py-0.5 rounded-full">
             LIVE

@@ -196,16 +196,20 @@ export async function getWeatherTool(params: { lat?: number; lon?: number }) {
   try {
     const lat = params.lat ?? 42.36;
     const lon = params.lon ?? -71.06;
+    // precipitation_probability_max is daily-only; use hourly for current-hour chance
     const res = await fetch(
-      `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,precipitation,precipitation_probability_max,wind_speed_10m&temperature_unit=fahrenheit&wind_speed_unit=mph`,
+      `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,precipitation,wind_speed_10m&hourly=precipitation_probability&temperature_unit=fahrenheit&wind_speed_unit=mph&forecast_days=1`,
       { signal: AbortSignal.timeout(8000) },
     );
     if (!res.ok) return { error: `Weather API error: ${res.status}` };
     const d = await res.json();
+    if (d.error) return { error: `Weather error: ${d.reason ?? d.error}` };
     const c = d.current;
     const temp = Math.round(c.temperature_2m);
     const condition = weatherCodeToDesc(c.weather_code);
-    const precipChance = c.precipitation_probability_max ?? 0;
+    // Get precipitation probability for the current hour
+    const currentHour = new Date().getHours();
+    const precipChance = d.hourly?.precipitation_probability?.[currentHour] ?? 0;
     const wind = Math.round(c.wind_speed_10m);
     const summary = precipChance > 50
       ? `It's ${temp}°F and ${condition}. Bring an umbrella — ${precipChance}% chance of rain.`

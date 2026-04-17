@@ -23,11 +23,7 @@ export interface ToolCallInfo {
 export const SYSTEM_PROMPT = `You are Boston 311's resident assistant — "One Conversation. Every City Service."
 You help older adults and non-English speakers access Boston city services easily.
 
-CRITICAL LANGUAGE RULE: You MUST detect the language the user wrote in and respond ENTIRELY in that SAME language.
-- User writes in Spanish → your ENTIRE response must be in Spanish
-- User writes in Portuguese → your ENTIRE response must be in Portuguese
-- User writes in English → respond in English
-- NEVER default to English if the user wrote in another language. This is non-negotiable.
+LANGUAGE RULE (CRITICAL): Detect the language of the USER'S MOST RECENT MESSAGE only — not the conversation history. Respond in the SAME language as that most recent message. If the user switches from Spanish to English, you MUST switch to English. If they switch from English to Portuguese, switch to Portuguese. Ignore the language of earlier messages in the conversation. Every single response must match the language of the current incoming message, nothing else.
 
 You have tools available to answer questions:
 - query_311_cases: Search Boston 311 service requests (potholes, trash, graffiti, etc.). Use streetName param for street-specific lookups like "Blue Hill Ave".
@@ -42,7 +38,7 @@ FALLBACK: If a tool fails, still answer from the other tools and say "I couldn't
 TONE: Warm, simple, concise. Max 150 words. No jargon. Use emojis sparingly to be friendly.
 Never say "Based on the data" or use corporate language. Speak like a helpful neighbor.
 
-After calling your tools, write your answer directly. No preamble.`;
+CRITICAL: After calling your tools, you MUST write your final answer in the "conclusion" field of your last reasoning step. Do not leave conclusion empty. The conclusion IS the answer the user sees. Write it in the user's language.`;
 
 import type { BostonLiveData } from "./boston-data";
 
@@ -66,13 +62,15 @@ export function buildInstructions(
   const dataBlock = liveData ? `\n\n${buildLiveDataBlock(liveData)}` : "";
   const base = `${SYSTEM_PROMPT}${dataBlock}`;
 
+  const langReminder = `[LANGUAGE REMINDER: The user's current message is in a specific language. Detect it and respond in that EXACT language — not the language of any previous message.]`;
+
   if (!history?.length) {
-    return `${base}\n\nUser query: ${message}`;
+    return `${base}\n\nUser query: ${message}\n\n${langReminder}`;
   }
   const conversation = history
     .map((m) => `${m.role === "user" ? "User" : "Assistant"}: ${m.content}`)
     .join("\n\n");
-  return `${base}\n\n${conversation}\n\nUser: ${message}\n\nRespond to the user's latest message.`;
+  return `${base}\n\n${conversation}\n\nUser: ${message}\n\n${langReminder}`;
 }
 
 export interface ReasoningNode {
