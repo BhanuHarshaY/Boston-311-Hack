@@ -1,10 +1,14 @@
 # Boston 311 Agent : One Conversation. Every City Service.
 
+**Live demo: [boston-311-agent.vercel.app](https://boston-311-agent.vercel.app/)**
+
 A multilingual voice + text AI agent that takes one natural language question from a Boston resident and orchestrates across multiple data sources to return one clear, friendly answer. Built for older adults and non-English speakers who deserve the same access to city services as everyone else.
 
 > "Has my pothole on Blue Hill Ave been fixed? And is it worth going outside today?"
 >
 > → Checks Boston 311 cases + live weather + today's events → one warm, combined response in your language.
+
+![Boston 311 Agent homepage](docs/homepage.png)
 
 ## What it does
 
