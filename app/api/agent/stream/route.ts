@@ -87,8 +87,11 @@ export async function POST(req: NextRequest) {
         }
         controller.close();
       } catch (err) {
-        const msg =
-          err instanceof Error ? err.message : "Stream error";
+        const msg = err instanceof Error
+          ? (err.message || err.constructor?.name || "Stream error")
+          : typeof err === "string" ? err
+          : JSON.stringify(err) || "Stream error";
+        console.error("[agent] Stream error:", err);
         const errorChunk = `data: ${JSON.stringify({
           type: "error",
           message: msg,

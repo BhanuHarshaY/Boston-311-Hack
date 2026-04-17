@@ -104,11 +104,12 @@ export function ChatView({ onReasoningUpdate }: ChatViewProps) {
           isStreaming: false,
         });
       } catch (err) {
-        const errMsg = err instanceof Error ? err.message : "Something went wrong";
+        const rawMsg = err instanceof Error ? err.message : String(err);
+        const errMsg = rawMsg?.trim() || "The agent couldn't be reached. Please try again.";
         setMessages((prev) =>
           prev.map((m) =>
             m.id === assistantId
-              ? { ...m, content: `Error: ${errMsg}`, isStreaming: false }
+              ? { ...m, content: `Sorry, something went wrong: ${errMsg}`, isStreaming: false }
               : m,
           ),
         );
@@ -194,7 +195,8 @@ async function consumeStream(
         fullContent += event.content;
         onUpdate(parseStreamContent(fullContent));
       } else if (event.type === "error") {
-        throw new Error(event.message ?? "Stream error");
+        const msg = event.message?.trim() || "Agent service unavailable. Check that SUBCONSCIOUS_API_KEY is set in your environment variables.";
+        throw new Error(msg);
       }
     }
   }

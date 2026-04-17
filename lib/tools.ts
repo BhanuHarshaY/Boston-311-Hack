@@ -1,6 +1,11 @@
 import type { Tool } from "subconscious";
 
-const TOOL_BASE_URL = process.env.APP_URL ?? process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
+// Vercel sets VERCEL_URL (no protocol). APP_URL is set by the local dev tunnel script.
+const TOOL_BASE_URL =
+  process.env.APP_URL ??
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ??
+  process.env.NEXT_PUBLIC_BASE_URL ??
+  "http://localhost:3000";
 
 export function getTools(): Tool[] {
   return [
